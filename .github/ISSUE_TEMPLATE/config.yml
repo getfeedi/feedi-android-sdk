@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Feedi docs
+    url: https://feedi.dev
+    about: Setup, configuration, webhooks, and data-residency documentation.
+  - name: Security report
+    url: https://github.com/getfeedi/feedi-android-sdk/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately, not as public issues.
+  - name: Product support
+    url: mailto:support@feedi.dev
+    about: Questions about your Feedi account, dashboard, or billing.
