@@ -43,7 +43,7 @@ dependencies {
 }
 
 mavenPublishing {
-    // Publishes the release AAR plus sources and a (Dokka-free) Javadoc jar,
+    // Publishes the release AAR plus sources and an AGP-generated Javadoc jar,
     // both required by Maven Central.
     configure(
         AndroidSingleVariantLibrary(

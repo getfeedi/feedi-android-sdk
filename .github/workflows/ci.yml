@@ -29,6 +29,8 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -39,7 +41,6 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
 
-      # Assemble the release AAR so packaging/`explicitApi()` regressions surface
-      # in CI rather than at publish time.
-      - name: Assemble release AAR
-        run: ./gradlew assembleRelease
+      # Check packaging, lint, and documentation before publishing to Central.
+      - name: Check release artifacts
+        run: ./gradlew assembleRelease lint javaDocReleaseJar

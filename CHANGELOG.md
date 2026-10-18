@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-10-19
 
+### Build
+
+- Install supported Android SDK packages explicitly in CI, and validate lint
+  and the documentation jar alongside the release AAR. Publishing uses JDK 21.
+
 ### Added
 
 - Added `includeBuiltInMetadata` configuration to `Feedi` and `FeediClient`.

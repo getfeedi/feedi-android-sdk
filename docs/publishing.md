@@ -42,6 +42,9 @@ build and test the SDK but fail the documentation-jar task with
 `IllegalArgumentException` while parsing the Java version. Set `JAVA_HOME` to
 your JDK 21 installation before running the release checks or publish task.
 
+Before publishing, run `./gradlew testDebugUnitTest assembleRelease lint javaDocReleaseJar`.
+CI runs the same checks with the Android 36 platform and build tools installed.
+
 1. Bump `version` in `build.gradle.kts` (drop any `-SNAPSHOT` suffix for a final
    release).
    The current prepared release is `1.1.0` (2026-10-19); keep the matching entry

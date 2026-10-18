@@ -22,7 +22,8 @@ The SDK has a deliberately narrow scope. Please keep these constraints in mind:
 ## Development setup
 
 - Android Studio (or a standalone Android SDK) with `minSdk` 26 / `compileSdk` 36.
-- JDK 21 works for the build; the SDK targets Java 8-compatible bytecode.
+- Use JDK 21 for the build and documentation generation; the SDK targets
+  Java 8-compatible bytecode.
 
 Run the unit test suite (using the Android Studio JBR and a configured Android SDK
 avoids toolchain drift):
@@ -39,7 +40,8 @@ Assemble the release AAR to catch packaging / `explicitApi()` regressions:
 ./gradlew assembleRelease
 ```
 
-CI runs the same unit tests and release assembly on every push and pull request.
+CI runs unit tests, release assembly, lint, and documentation-jar generation on
+every push and pull request, using JDK 21 and the Android 36 SDK packages.
 
 ## Making changes
 
@@ -49,7 +51,7 @@ CI runs the same unit tests and release assembly on every push and pull request.
    `kotlinx-coroutines-test`). Regression tests are expected for bug fixes.
 4. Update `README.md`, `docs/android-sdk-architecture.md`, `docs/publishing.md`,
    and `CHANGELOG.md` when behavior, install instructions, or public API change.
-5. Make sure `./gradlew testDebugUnitTest assembleRelease` passes locally.
+5. With JDK 21, make sure `./gradlew testDebugUnitTest assembleRelease lint javaDocReleaseJar` passes locally.
 
 ## Commit and PR conventions
 
