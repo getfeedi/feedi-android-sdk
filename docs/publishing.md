@@ -37,6 +37,11 @@ release run must export the key.
 
 ## Cutting a release
 
+Use JDK 21 for publishing, matching CI. Newer Android Studio JBR versions can
+build and test the SDK but fail the documentation-jar task with
+`IllegalArgumentException` while parsing the Java version. Set `JAVA_HOME` to
+your JDK 21 installation before running the release checks or publish task.
+
 1. Bump `version` in `build.gradle.kts` (drop any `-SNAPSHOT` suffix for a final
    release).
    The current prepared release is `1.1.0` (2026-10-19); keep the matching entry
@@ -44,7 +49,7 @@ release run must export the key.
 2. Run the publish task:
 
    ```bash
-   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+   JAVA_HOME="$(/usr/libexec/java_home -v 21)" \
    ANDROID_HOME="$HOME/Library/Android/sdk" \
    ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
    ```
