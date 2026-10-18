@@ -14,6 +14,65 @@ import kotlin.test.assertFailsWith
 @OptIn(ExperimentalCoroutinesApi::class)
 class FeediClientTest {
     @Test
+    fun `metadata opt out skips provider metadata but preserves app id email and custom metadata`() = runTest {
+        val provider = CountingMetadataProvider()
+        val transport = RecordingTransport()
+        val client = FeediClient(
+            configuration = FeediConfiguration(apiKey = "feedi_pk_test"),
+            transport = transport,
+            metadataProvider = provider,
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+            includeBuiltInMetadata = false,
+        )
+
+        client.submitFeedback("Hello", "person@example.com", mapOf("screen" to "home"))
+
+        val body = JSONObject(transport.request.body)
+        assertEquals(0, provider.metadataCalls)
+        assertEquals(1, provider.appIdentifierCalls)
+        assertEquals(0, body.getJSONObject("metadata").length())
+        assertEquals("com.example.app", body.getString("appIdentifier"))
+        assertEquals("person@example.com", body.getString("email"))
+        assertEquals("home", body.getJSONObject("customMetadata").getString("screen"))
+    }
+
+    @Test
+    fun `explicit true includes built in metadata`() = runTest {
+        listOf(true).forEach { enabled ->
+            val transport = RecordingTransport()
+            val client = FeediClient(
+                configuration = FeediConfiguration(apiKey = "feedi_pk_test"),
+                transport = transport,
+                metadataProvider = StaticMetadataProvider(mapOf("appVersion" to "1.2.3")),
+                ioDispatcher = StandardTestDispatcher(testScheduler),
+                includeBuiltInMetadata = enabled,
+            )
+
+            client.submitFeedback("Hello")
+
+            assertEquals("1.2.3", JSONObject(transport.request.body).getJSONObject("metadata").getString("appVersion"))
+        }
+    }
+
+    @Test
+    fun `reconfigure without metadata flag restores default enabled behavior`() = runTest {
+        val provider = CountingMetadataProvider()
+        val transport = RecordingTransport()
+        val client = FeediClient(
+            configuration = FeediConfiguration(apiKey = "feedi_pk_test"),
+            transport = transport,
+            metadataProvider = provider,
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+            includeBuiltInMetadata = false,
+        )
+
+        client.configure(apiKey = "feedi_pk_new")
+        client.submitFeedback("Hello")
+
+        assertEquals("unknown", JSONObject(transport.request.body).getJSONObject("metadata").getString("appVersion"))
+    }
+
+    @Test
     fun `submit feedback sends authorized api contract payload and returns receipt`() = runTest {
         val transport = RecordingTransport(
             response = HttpResponse(
@@ -282,4 +341,19 @@ internal class StaticMetadataProvider(
     override fun metadata(): Map<String, String> = values
 
     override fun appIdentifier(): String = appId
+}
+
+private class CountingMetadataProvider : MetadataProvider {
+    var metadataCalls: Int = 0
+    var appIdentifierCalls: Int = 0
+
+    override fun metadata(): Map<String, String> {
+        metadataCalls += 1
+        error("metadata must not be read when opted out")
+    }
+
+    override fun appIdentifier(): String {
+        appIdentifierCalls += 1
+        return "com.example.app"
+    }
 }

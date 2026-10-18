@@ -12,47 +12,70 @@ public class FeediClient internal constructor(
     private val transport: HttpTransport,
     metadataProvider: MetadataProvider,
     private val ioDispatcher: CoroutineDispatcher,
+    includeBuiltInMetadata: Boolean,
 ) : FeediFeedbackSubmitting {
     private val state = AtomicReference<ClientState?>(
-        configuration?.let { ClientState(configuration = it, metadataProvider = metadataProvider) },
+        configuration?.let { ClientState(configuration = it, metadataProvider = metadataProvider, includeBuiltInMetadata = includeBuiltInMetadata) },
     )
 
-    public constructor(apiKey: String) : this(
+    internal constructor(
+        configuration: FeediConfiguration?,
+        transport: HttpTransport,
+        metadataProvider: MetadataProvider,
+        ioDispatcher: CoroutineDispatcher,
+    ) : this(configuration, transport, metadataProvider, ioDispatcher, true)
+
+    public constructor(apiKey: String) : this(apiKey = apiKey, includeBuiltInMetadata = true)
+
+    public constructor(apiKey: String, includeBuiltInMetadata: Boolean) : this(
         configuration = FeediConfiguration(apiKey = apiKey),
         transport = UrlConnectionHttpTransport(),
         metadataProvider = EmptyMetadataProvider,
         ioDispatcher = Dispatchers.IO,
+        includeBuiltInMetadata = includeBuiltInMetadata,
     )
+
+    public constructor(apiKey: String, apiBaseUrl: String) : this(apiKey, apiBaseUrl, true)
 
     public constructor(
         apiKey: String,
         apiBaseUrl: String,
+        includeBuiltInMetadata: Boolean,
     ) : this(
         configuration = FeediConfiguration(apiKey = apiKey, apiBaseUrl = apiBaseUrl),
         transport = UrlConnectionHttpTransport(),
         metadataProvider = EmptyMetadataProvider,
         ioDispatcher = Dispatchers.IO,
+        includeBuiltInMetadata = includeBuiltInMetadata,
     )
+
+    public constructor(context: Context, apiKey: String) : this(context, apiKey, true)
 
     public constructor(
         context: Context,
         apiKey: String,
+        includeBuiltInMetadata: Boolean,
     ) : this(
         configuration = FeediConfiguration(apiKey = apiKey),
         transport = UrlConnectionHttpTransport(),
         metadataProvider = AndroidMetadataProvider(context.applicationContext),
         ioDispatcher = Dispatchers.IO,
+        includeBuiltInMetadata = includeBuiltInMetadata,
     )
+
+    public constructor(context: Context, apiKey: String, apiBaseUrl: String) : this(context, apiKey, apiBaseUrl, true)
 
     public constructor(
         context: Context,
         apiKey: String,
         apiBaseUrl: String,
+        includeBuiltInMetadata: Boolean,
     ) : this(
         configuration = FeediConfiguration(apiKey = apiKey, apiBaseUrl = apiBaseUrl),
         transport = UrlConnectionHttpTransport(),
         metadataProvider = AndroidMetadataProvider(context.applicationContext),
         ioDispatcher = Dispatchers.IO,
+        includeBuiltInMetadata = includeBuiltInMetadata,
     )
 
     public constructor() : this(
@@ -63,27 +86,49 @@ public class FeediClient internal constructor(
     )
 
     public fun configure(apiKey: String): Unit {
-        configure(apiKey = apiKey, apiBaseUrl = FeediConfiguration.defaultApiBaseUrl)
+        configure(apiKey = apiKey, apiBaseUrl = FeediConfiguration.defaultApiBaseUrl, includeBuiltInMetadata = true)
     }
 
     public fun configure(apiKey: String, apiBaseUrl: String): Unit {
+        configure(apiKey = apiKey, apiBaseUrl = apiBaseUrl, includeBuiltInMetadata = true)
+    }
+
+    /** Configure the client and choose whether to send app version, build number, Android version, and locale. */
+    public fun configure(apiKey: String, includeBuiltInMetadata: Boolean): Unit {
+        configure(apiKey = apiKey, apiBaseUrl = FeediConfiguration.defaultApiBaseUrl, includeBuiltInMetadata = includeBuiltInMetadata)
+    }
+
+    /** Configure the client and choose whether to send app version, build number, Android version, and locale. */
+    public fun configure(apiKey: String, apiBaseUrl: String, includeBuiltInMetadata: Boolean): Unit {
         state.set(
             ClientState(
                 configuration = FeediConfiguration(apiKey = apiKey, apiBaseUrl = apiBaseUrl),
                 metadataProvider = EmptyMetadataProvider,
+                includeBuiltInMetadata = includeBuiltInMetadata,
             ),
         )
     }
 
     public fun configure(context: Context, apiKey: String): Unit {
-        configure(context = context, apiKey = apiKey, apiBaseUrl = FeediConfiguration.defaultApiBaseUrl)
+        configure(context = context, apiKey = apiKey, apiBaseUrl = FeediConfiguration.defaultApiBaseUrl, includeBuiltInMetadata = true)
+    }
+
+    /** Configure the client; disabled built-in metadata is never read, and the package name is still sent. */
+    public fun configure(context: Context, apiKey: String, includeBuiltInMetadata: Boolean): Unit {
+        configure(context = context, apiKey = apiKey, apiBaseUrl = FeediConfiguration.defaultApiBaseUrl, includeBuiltInMetadata = includeBuiltInMetadata)
     }
 
     public fun configure(context: Context, apiKey: String, apiBaseUrl: String): Unit {
+        configure(context = context, apiKey = apiKey, apiBaseUrl = apiBaseUrl, includeBuiltInMetadata = true)
+    }
+
+    /** Configure the client; disabled built-in metadata is never read, and the package name is still sent. */
+    public fun configure(context: Context, apiKey: String, apiBaseUrl: String, includeBuiltInMetadata: Boolean): Unit {
         state.set(
             ClientState(
                 configuration = FeediConfiguration(apiKey = apiKey, apiBaseUrl = apiBaseUrl),
                 metadataProvider = AndroidMetadataProvider(context.applicationContext),
+                includeBuiltInMetadata = includeBuiltInMetadata,
             ),
         )
     }
@@ -102,6 +147,12 @@ public class FeediClient internal constructor(
         )
         val response = try {
             withContext(ioDispatcher) {
+                val appIdentifier = currentState.metadataProvider.appIdentifier()
+                val metadata = if (currentState.includeBuiltInMetadata) {
+                    currentState.metadataProvider.metadata()
+                } else {
+                    emptyMap()
+                }
                 transport.execute(
                     HttpRequest(
                         url = currentState.configuration.feedbackUrl,
@@ -112,8 +163,8 @@ public class FeediClient internal constructor(
                             "Accept" to "application/json",
                         ),
                         body = payload.toJson(
-                            currentState.metadataProvider.metadata(),
-                            currentState.metadataProvider.appIdentifier(),
+                            metadata,
+                            appIdentifier,
                         ),
                     ),
                 )
@@ -157,5 +208,6 @@ public class FeediClient internal constructor(
     private data class ClientState(
         val configuration: FeediConfiguration,
         val metadataProvider: MetadataProvider,
+        val includeBuiltInMetadata: Boolean = true,
     )
 }

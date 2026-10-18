@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.feedi"
-version = "1.0.1"
+version = "1.1.0"
 
 android {
     namespace = "dev.feedi"

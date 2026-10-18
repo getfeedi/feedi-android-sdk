@@ -15,7 +15,7 @@ Feedi Android is a small headless SDK. It intentionally avoids UI, analytics, de
 1. App calls `Feedi.configure(context, apiKey)` once. `Feedi.configure(apiKey)` remains available for context-free setup and tests.
 2. App calls suspending `submitFeedback(message, userEmail, customMetadata)` from its own UI or domain code.
 3. The SDK trims and validates the message, optional email, and custom metadata locally before transport.
-4. The SDK adds a narrow built-in metadata object: app version, build number, Android version, and locale. It does not collect device identifiers.
+4. By default, the SDK adds a narrow built-in metadata object: app version, build number, Android version, and locale. `includeBuiltInMetadata = false` sends an empty `metadata` object without reading those values. `appIdentifier` is always read from the context and sent. The SDK does not collect device identifiers.
 5. Blocking `HttpURLConnection` work runs inside the configured I/O dispatcher.
 6. The SDK sends `POST /v1/feedback` with `Authorization: Bearer <public key>`.
 7. The SDK decodes the receipt response and returns it to the app.
@@ -51,7 +51,7 @@ The request body is:
 }
 ```
 
-`email` and `customMetadata` are optional. `metadata` is always sent and contains only non-identifying app/runtime fields. `appIdentifier` is the app's package name, captured automatically and sent as a dedicated top-level field so the backend can verify it matches the app the write key belongs to; a mismatch is rejected with HTTP 403.
+`email` and `customMetadata` are optional. `metadata` is always sent; by default it contains only non-identifying app/runtime fields, and it is `{}` when `includeBuiltInMetadata` is false. `appIdentifier` is always the app's package name, captured automatically and sent as a dedicated top-level field so the backend can verify it matches the app the write key belongs to; a mismatch is rejected with HTTP 403.
 
 Configuration is intentionally strict. Public write keys must be Feedi public write keys (region-segmented, e.g. `feedi_us_pk_...` / `feedi_eu_pk_...`), API base URLs must be valid absolute URLs, and non-local endpoints must use HTTPS so feedback payloads and write keys are not sent over cleartext transport.
 

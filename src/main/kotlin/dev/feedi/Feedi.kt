@@ -10,22 +10,43 @@ public object Feedi : FeediFeedbackSubmitting {
 
     @JvmStatic
     public fun configure(apiKey: String): Unit {
-        sharedClient.get().configure(apiKey = apiKey)
+        sharedClient.get().configure(apiKey = apiKey, includeBuiltInMetadata = true)
+    }
+
+    @JvmStatic
+    public fun configure(apiKey: String, includeBuiltInMetadata: Boolean): Unit {
+        sharedClient.get().configure(apiKey = apiKey, includeBuiltInMetadata = includeBuiltInMetadata)
     }
 
     @JvmStatic
     public fun configure(apiKey: String, apiBaseUrl: String): Unit {
-        sharedClient.get().configure(apiKey = apiKey, apiBaseUrl = apiBaseUrl)
+        sharedClient.get().configure(apiKey = apiKey, apiBaseUrl = apiBaseUrl, includeBuiltInMetadata = true)
+    }
+
+    @JvmStatic
+    public fun configure(apiKey: String, apiBaseUrl: String, includeBuiltInMetadata: Boolean): Unit {
+        sharedClient.get().configure(apiKey = apiKey, apiBaseUrl = apiBaseUrl, includeBuiltInMetadata = includeBuiltInMetadata)
     }
 
     @JvmStatic
     public fun configure(context: Context, apiKey: String): Unit {
-        sharedClient.get().configure(context = context, apiKey = apiKey)
+        sharedClient.get().configure(context = context, apiKey = apiKey, includeBuiltInMetadata = true)
+    }
+
+    /** Configure submission; when disabled, app version, build number, Android version, and locale are never read. */
+    @JvmStatic
+    public fun configure(context: Context, apiKey: String, includeBuiltInMetadata: Boolean): Unit {
+        sharedClient.get().configure(context = context, apiKey = apiKey, includeBuiltInMetadata = includeBuiltInMetadata)
     }
 
     @JvmStatic
     public fun configure(context: Context, apiKey: String, apiBaseUrl: String): Unit {
-        sharedClient.get().configure(context = context, apiKey = apiKey, apiBaseUrl = apiBaseUrl)
+        sharedClient.get().configure(context = context, apiKey = apiKey, apiBaseUrl = apiBaseUrl, includeBuiltInMetadata = true)
+    }
+
+    @JvmStatic
+    public fun configure(context: Context, apiKey: String, apiBaseUrl: String, includeBuiltInMetadata: Boolean): Unit {
+        sharedClient.get().configure(context = context, apiKey = apiKey, apiBaseUrl = apiBaseUrl, includeBuiltInMetadata = includeBuiltInMetadata)
     }
 
     @Throws(FeediError::class)

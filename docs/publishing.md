@@ -39,6 +39,8 @@ release run must export the key.
 
 1. Bump `version` in `build.gradle.kts` (drop any `-SNAPSHOT` suffix for a final
    release).
+   The current prepared release is `1.1.0` (2026-10-19); keep the matching entry
+   and comparison link in `CHANGELOG.md` aligned with the artifact version.
 2. Run the publish task:
 
    ```bash

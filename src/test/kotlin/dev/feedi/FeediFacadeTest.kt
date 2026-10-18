@@ -7,6 +7,21 @@ import kotlin.test.assertEquals
 
 class FeediFacadeTest {
     @Test
+    fun `facade can omit built in metadata`() = runTest {
+        val transport = RecordingTransport()
+        Feedi.resetForTesting(
+            transport = transport,
+            metadataProvider = StaticMetadataProvider(),
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+        )
+        Feedi.configure(apiKey = "feedi_pk_shared", includeBuiltInMetadata = false)
+
+        Feedi.submitFeedback("Please add export.")
+
+        assertEquals(0, org.json.JSONObject(transport.request.body).getJSONObject("metadata").length())
+    }
+
+    @Test
     fun `configure enables shared facade submissions`() = runTest {
         val transport = RecordingTransport()
         Feedi.resetForTesting(

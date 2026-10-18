@@ -29,7 +29,7 @@ projects; add it if yours doesn't have it):
 
 ```kotlin
 dependencies {
-    implementation("dev.feedi:feedi-android-sdk:1.0.0")
+    implementation("dev.feedi:feedi-android-sdk:1.1.0")
 }
 ```
 
@@ -47,6 +47,16 @@ Feedi.configure(
 ```
 
 `context` is used for built-in app metadata (app version, build number, Android version, and locale) and to read the app's package name. The package name is sent automatically with every submission so the backend can verify it matches the app the write key belongs to; a mismatch is rejected with HTTP 403. Use the `feedi_eu_pk_...` or `feedi_us_pk_...` key for the region you chose when registering the app.
+
+Built-in app metadata is included by default. Pass `includeBuiltInMetadata = false` to omit app version, build number, Android version, and locale. The package name (`appIdentifier`) is still read and sent, and custom metadata and email are unchanged:
+
+```kotlin
+Feedi.configure(
+    context = applicationContext,
+    apiKey = "feedi_eu_pk_...",
+    includeBuiltInMetadata = false,
+)
+```
 
 Feedi rejects blank keys, keys that are not Feedi public write keys, malformed API base URLs, and non-HTTPS API base URLs. A blank or non-public key throws `FeediError.InvalidConfiguration` from `configure`. Plain HTTP is accepted only for explicit local development hosts such as `localhost` or `127.0.0.1`.
 
@@ -142,6 +152,7 @@ class SettingsFeedbackController(
 - Sends `POST /v1/feedback` to `https://api.feedi.dev` by default.
 - Sends `Authorization: Bearer <public key>`.
 - Encodes `message`, optional `email`, the app's `appIdentifier` (package name), built-in `metadata`, and `customMetadata` as JSON.
+- Built-in metadata can be omitted with `includeBuiltInMetadata = false`; `metadata` is sent as `{}` while `appIdentifier` remains required.
 - Returns `FeediReceipt(id, receivedAt)` for 2xx responses. `receivedAt` is a `java.time.Instant`.
 - Throws `FeediError.RateLimited` for HTTP 429 and `FeediError.ServerUnavailable` for HTTP 503. A `403` response throws `FeediError.AppIdentifierMismatch`, meaning the package name did not match the registered app.
 

@@ -5,6 +5,17 @@ All notable changes to the Feedi Android SDK are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-19
+
+### Added
+
+- Added `includeBuiltInMetadata` configuration to `Feedi` and `FeediClient`.
+  It defaults to `true`; setting it to `false` sends `metadata: {}` without
+  reading app version, build number, Android version, or locale. The package
+  name remains sent as `appIdentifier`.
+- Preserved the existing public configure and constructor overloads. Calls
+  through those APIs continue to include built-in metadata by default.
+
 ## [1.0.1] - 2026-06-24
 
 ### Documentation
@@ -51,4 +62,5 @@ Initial public release. The version is aligned with the Feedi iOS SDK.
   allowed only for local development hosts).
 
 [1.0.1]: https://github.com/getfeedi/feedi-android-sdk/compare/v1.0.0...v1.0.1
+[1.1.0]: https://github.com/getfeedi/feedi-android-sdk/compare/v1.0.1...v1.1.0
 [1.0.0]: https://github.com/getfeedi/feedi-android-sdk/releases/tag/v1.0.0
